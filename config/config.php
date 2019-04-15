@@ -14,3 +14,19 @@ if($link === false){
     die("ERROR: Could not connect. " . mysqli_connect_error());
 }
 ?>
+
+<?php
+/*
+DEFINE("DB_USER", "root");
+DEFINE("DB_PASS", "");
+try {
+    $db = new PDO(
+        "mysql:host=localhost;dbname=camping",
+        DB_USER,DB_PASS);
+    $db->setAttribute(
+        PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    echo $e->getMessage();
+}
+*/
+?>

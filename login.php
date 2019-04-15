@@ -14,7 +14,7 @@ require_once 'config/config.php';
 // Define variables and initialize with empty values
 $username = $password = "";
 $username_err = $password_err = "";
- 
+$email = "";
 // Processing form data when form is submitted
 if($_SERVER["REQUEST_METHOD"] == "POST"){
  
@@ -35,7 +35,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Validate credentials
     if(empty($username_err) && empty($password_err)){
         // Prepare a select statement
-        $sql = "SELECT id, username, password FROM users WHERE username = ?";
+        $sql = "SELECT id, username, email, password FROM users WHERE username = ?";
         
         if($stmt = mysqli_prepare($link, $sql)){
             // Bind variables to the prepared statement as parameters
@@ -52,7 +52,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 // Check if username exists, if yes then verify password
                 if(mysqli_stmt_num_rows($stmt) == 1){                    
                     // Bind result variables
-                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password);
+                    mysqli_stmt_bind_result($stmt, $id, $username, $email, $hashed_password);
                     if(mysqli_stmt_fetch($stmt)){
                         if(password_verify($password, $hashed_password)){
                             // Password is correct, so start a new session
@@ -62,6 +62,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             $_SESSION["loggedin"] = true;
                             $_SESSION["id"] = $id;
                             $_SESSION["username"] = $username;      	
+                            $_SESSION["email"] = $email;      	
                             
 							// Get data
 							$sql = "SELECT * FROM users WHERE username = 'test'";
@@ -119,7 +120,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Delivery Manager 2 | Log in</title>
+  <title>Caming Maasvallei | Log in</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.7 -->
@@ -146,7 +147,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="/index.php"><b>Delivery</b>Manager</a>
+    <a href="index.php"><b>Caming</b>Maasvallei</a>
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">
