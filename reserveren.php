@@ -8,8 +8,19 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     exit;
 }
 
+
+
 $users = "";
 $orders = "";
+
+
+// Error message
+$error = false;
+$success = false;
+
+$errorMessage = "";
+$successMessage = "";
+
 // Include config file
 require_once "config/config.php";
 
@@ -29,8 +40,80 @@ while($row_complaints = $results->fetch_assoc()) {
 }
 
 
-if (isset($_POST['submit'])) {
-    echo '';
+// Get all locations
+// Query for the users
+$sql = "SELECT * FROM rooms";
+$results = $link->query($sql);
+
+
+
+$rooms = array();
+while($row = mysqli_fetch_assoc($results)){
+    array_push($rooms, $row);  
+}
+
+
+// If form post (on submit)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $error = false;
+    $success = false;
+
+    print_r($_POST['reservationtime']);
+    $start_year = substr($_POST['reservationtime'], -19);
+    $end_year = substr($_POST['reservationtime'], 20);
+
+
+    //$end_year = substr($d2, -4);
+    echo '<br>';
+    echo $start_year;  
+    echo '<br>';
+    echo $end_year;  
+
+    if (empty($_POST['room']) ) {
+
+        // Show error
+        $error = true;
+        // Set error message
+        $errorMessage = "Er is geen plaats of kamer geselecteerd, reservering niet geplaatst";
+    }
+    else {
+
+
+        
+        
+        // Query for the users
+        $sql = "INSERT INTO `reservations` (`user_id`, `arrival`, `departure`, `room_id`) VALUES ('" . $_SESSION['id'] . "', '2019-05-14 00:00:00', '2019-04-13 00:00:00', '" . $_POST['room'] . "')";
+        echo $sql;
+        //echo "<br>" . $sql;
+
+        if (!mysqli_query($link,"$sql"))
+        {
+            // Set error message to true
+            $error = true;
+
+            // Duplicate error
+            if (mysqli_errno($link) == 1062) {
+                //$errorMessage = mysqli_error($link);
+                $errorMessage = "Er is al een reservering voor deze datum geplaatst, neem een andere locatie of een ander tijdstip";
+
+            }
+            else {
+                $errorMessage = "Error: " . mysqli_error($link);
+            }
+        }
+        else {
+
+            // Removes error if needed
+            $error = false;
+
+            // Show success message
+            $success = true;
+
+            // Set success message
+            $successMessage = "De reservering voor plaats / kamer: " . $_POST['room'] . " is geplaatst.";
+        }
+    }
 }
 
 ?>
@@ -115,20 +198,134 @@ if (isset($_POST['submit'])) {
             <div class="box-header">
               <h3 class="box-title">Reserveren</h3>
             </div>
-            <form id="reservation" action="reserveren.php" method="post">
-                Voor en achternaam:<br>
-                <input type="text" name="name" value="<?php echo htmlspecialchars($_SESSION["firstname"]); echo " "; echo htmlspecialchars($_SESSION["lastname"]); ?>">
-                <br><br>
-                Telefoon:
+            <div class="box-body">
+                <form id="reservation" action="reserveren.php" method="post">
+                    <div class="form-group">
+                        <label>Voor en achternaam:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-user"></i>
+                            </div>
+                            <input id="name" type="text" name="name" class="form-control pull-right" value="<?php echo htmlspecialchars($_SESSION["firstname"]); echo " "; echo htmlspecialchars($_SESSION["lastname"]); ?>">
+                        </div>
+                        <!-- /.input group -->
+                    </div>
+
+                    <br>
+
+                    <div class="form-group">
+                        <label>Telefoonnummer:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-phone"></i>
+                            </div>
+                            <input type="text" name="phone" class="form-control" data-inputmask="&quot;mask&quot;: &quot;+(99) 99999999&quot;" data-mask="" value="<?php echo $_SESSION["phonenumber"]; ?>">
+                        </div>
+                        <!-- /.input group -->
+                    </div>
+
+                    <br>
+
+                    <div class="form-group">
+                        <label>Email:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-envelope"></i>
+                            </div>
+                            <input type="text" name="email" class="form-control pull-right" value="<?php echo htmlspecialchars($_SESSION["email"]); ?>">
+                        </div>
+                        <!-- /.input group -->
+                    </div>
+
+                    <div class="form-group">
+                        <label>Datum en tijd:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                            <input id="reservationtime" type="text" class="form-control pull-right" name="reservationtime" data-date="1979-09-16T05:25:07Z" data-date-format="dd MM yyyy - HH:ii p">
+                        </div>
+                        <!-- /.input group -->
+                    </div>
+
+                    <div class="form-group">
+                        <label>Plaats / kamer:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-home"></i>
+                            </div>
+                            <select name="room" class="form-control">
+                                
+                                <?php
+                                    //$rooms = array();
+                                    $length = count($rooms);
+                                    echo $length;
+                                    if ($length <= 0) {
+                                        echo "<option selected='true' disabled='disabled'>Geen kamers gevonden</option>";
+                                    }
+                                    else {
+                                        echo "<option selected='true' disabled='disabled'>Selecteer een locatie</option>";
+                                        for ($i = 0; $i < $length; $i++) {
+                                            echo "<option value='" .  $rooms[$i]['room_id'] . "'>" . $rooms[$i]['number'] . "</option>";
+                                            //print $rooms[$i];
+                                        }
+                                    }
+                                    
+
+                                ?>
+                            </select>
+                        </div>
+                        <!-- /.input group -->
+                    </div>
+
+                    <br>
+                    
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    
+                </form>
                 <br>
-                <input type="text" name="phone" value="<?php echo htmlspecialchars($_SESSION["phonenumber"]); ?>">
-                <br><br>
-                Email:
-                <br>
-                <input type="text" name="email" value="<?php echo htmlspecialchars($_SESSION["email"]); ?>">
-                <br><br>
-                <input type="submit" value="Submit">
-            </form> 
+                <?php
+                // Error message
+                if ($error == true) {
+                    if ($errorMessage == "") {
+                        echo "<div class='callout callout-danger'>";
+                        echo "<h4>Foutmelding!</h4>";
+    
+                        echo "<p>Er is een fout opgetreden probeer het later nog een keer.</p>";    
+                        echo "</div>";
+                    }
+                    else {
+                        echo "<div class='callout callout-danger'>";
+                        echo "<h4>Foutmelding!</h4>";
+    
+                        echo "<p>$errorMessage</p>";    
+                        echo "</div>";
+                    }
+                }
+                // Error message
+                if ($success == true) {
+                    if ($successMessage == "") {
+                        echo "<div class='callout callout-success'>";
+                        echo "<h4>Gelukt!</h4>";
+    
+                        echo "<p>De reservering is gelukt.</p>";    
+                        echo "</div>";
+                    }
+                    else {
+                        echo "<div class='callout callout-success'>";
+                        echo "<h4>Gelukt!</h4>";
+    
+                        echo "<p>$successMessage</p>";    
+                        echo "</div>";
+                    }
+                }
+                ?>
+            </div>
             <!-- /.box-body -->
           </div>
          </div>
@@ -387,74 +584,73 @@ $( document ).ready(function() {
 });
 
     
+  $(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2()
 
-//   $(function () {
-//     //Initialize Select2 Elements
-//     $('.select2').select2()
+    //Datemask dd/mm/yyyy
+    $('#datemask').inputmask('dd/mm/yyyy', { 'placeholder': 'dd/mm/yyyy' })
+    //Datemask2 mm/dd/yyyy
+    $('#datemask2').inputmask('mm/dd/yyyy', { 'placeholder': 'mm/dd/yyyy' })
+    //Money Euro
+    $('[data-mask]').inputmask()
 
-//     //Datemask dd/mm/yyyy
-//     $('#datemask').inputmask('dd/mm/yyyy', { 'placeholder': 'dd/mm/yyyy' })
-//     //Datemask2 mm/dd/yyyy
-//     $('#datemask2').inputmask('mm/dd/yyyy', { 'placeholder': 'mm/dd/yyyy' })
-//     //Money Euro
-//     $('[data-mask]').inputmask()
+    // //Date range picker
+    // $('#reservations').daterangepicker()
+    // //Date range picker with time picker
+    // $('#reservationtime').daterangepicker({ timePicker: true, timePickerIncrement: 30, format: 'YYYY/MM/DD hh:mm A' })
 
-//     //Date range picker
-//     $('#reservation').daterangepicker()
-//     //Date range picker with time picker
-//     $('#reservationtime').daterangepicker({ timePicker: true, timePickerIncrement: 30, format: 'DD/MM/YYYY h:mm A' })
+    
+    // //Date range as a button
+    // $('#daterange-btn').daterangepicker(
+    //   {
+    //     ranges   : {
+    //       'Today'       : [moment(), moment()],
+    //       'Yesterday'   : [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+    //       'Last 7 Days' : [moment().subtract(6, 'days'), moment()],
+    //       'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+    //       'This Month'  : [moment().startOf('month'), moment().endOf('month')],
+    //       'Last Month'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    //     },
+    //     startDate: moment().subtract(29, 'days'),
+    //     endDate  : moment()
+    //   },
+    //   function (start, end) {
+    //     $('#daterange-btn span').html(start.format('D MMMM, YYYY') + ' - ' + end.format('D MMMM, YYYY'))
+    //   }
+    // )
 
-//     console.log($('#reservationtime').val());
-//     //Date range as a button
-//     $('#daterange-btn').daterangepicker(
-//       {
-//         ranges   : {
-//           'Today'       : [moment(), moment()],
-//           'Yesterday'   : [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-//           'Last 7 Days' : [moment().subtract(6, 'days'), moment()],
-//           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-//           'This Month'  : [moment().startOf('month'), moment().endOf('month')],
-//           'Last Month'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-//         },
-//         startDate: moment().subtract(29, 'days'),
-//         endDate  : moment()
-//       },
-//       function (start, end) {
-//         $('#daterange-btn span').html(start.format('D MMMM, YYYY') + ' - ' + end.format('D MMMM, YYYY'))
-//       }
-//     )
+    // //Date picker
+    // $('#datepicker').datepicker({
+    //   autoclose: true
+    // })
 
-//     //Date picker
-//     $('#datepicker').datepicker({
-//       autoclose: true
-//     })
+    //iCheck for checkbox and radio inputs
+    $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+      checkboxClass: 'icheckbox_minimal-blue',
+      radioClass   : 'iradio_minimal-blue'
+    })
+    //Red color scheme for iCheck
+    $('input[type="checkbox"].minimal-red, input[type="radio"].minimal-red').iCheck({
+      checkboxClass: 'icheckbox_minimal-red',
+      radioClass   : 'iradio_minimal-red'
+    })
+    //Flat red color scheme for iCheck
+    $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
+      checkboxClass: 'icheckbox_flat-green',
+      radioClass   : 'iradio_flat-green'
+    })
 
-//     //iCheck for checkbox and radio inputs
-//     $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
-//       checkboxClass: 'icheckbox_minimal-blue',
-//       radioClass   : 'iradio_minimal-blue'
-//     })
-//     //Red color scheme for iCheck
-//     $('input[type="checkbox"].minimal-red, input[type="radio"].minimal-red').iCheck({
-//       checkboxClass: 'icheckbox_minimal-red',
-//       radioClass   : 'iradio_minimal-red'
-//     })
-//     //Flat red color scheme for iCheck
-//     $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
-//       checkboxClass: 'icheckbox_flat-green',
-//       radioClass   : 'iradio_flat-green'
-//     })
+    //Colorpicker
+    $('.my-colorpicker1').colorpicker()
+    //color picker with addon
+    $('.my-colorpicker2').colorpicker()
 
-//     //Colorpicker
-//     $('.my-colorpicker1').colorpicker()
-//     //color picker with addon
-//     $('.my-colorpicker2').colorpicker()
-
-//     //Timepicker
-//     $('.timepicker').timepicker({
-//       showInputs: false
-//     })
-//   })
+    //Timepicker
+    $('.timepicker').timepicker({
+      showInputs: false
+    })
+  })
 </script>
 <!-- eigen script-->
 

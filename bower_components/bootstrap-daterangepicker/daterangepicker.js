@@ -29,6 +29,7 @@
     }
 }(this, function(moment, $) {
     var DateRangePicker = function(element, options, cb) {
+        console.log(options);
 
         //default settings for options
         this.parentEl = 'body';
@@ -77,6 +78,10 @@
             monthNames: moment.monthsShort(),
             firstDay: moment.localeData().firstDayOfWeek()
         };
+
+        // EIGEN TIME GOED ZETTEN
+        this.locale.format = 'YYYY/MM/DD hh:mm A';
+
 
         this.callback = function() { };
 
