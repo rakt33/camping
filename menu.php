@@ -30,7 +30,7 @@
                 <li class="header">HOOFD NAVIGATIE</li>
 				<li id="index"><a href="index.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
 				<li id="reserveren"><a href="reserveren.php"><i class="fa fa-paste"></i> <span>Reserveren</span></a></li>
-				<li id="rooster"><a href="rooster.php"><i class="fa fa-paste"></i> <span>Rooster</span></a></li>
+				<li id="Reserveringen"><a href="reserveringen.php"><i class="fa fa-paste"></i> <span>reserveringen</span></a></li>
 				
                 <li class="header">INSTELLINGEN</li>
                 <li id="profile"><a href="profile.php"><i class="fa fa-user"></i> <span>Profiel</span></a></li>

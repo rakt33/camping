@@ -4,7 +4,8 @@ session_start();
  
 // Check if the user is logged in, if not then redirect him to login page
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: login.php");
+    //header("location: login.php");
+    require_once "page.php";
     exit;
 }
 
@@ -108,7 +109,7 @@ while($row_complaints = $results->fetch_assoc()) {
                 <small>Control panel</small>
             </h1>
             <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+                <li><a href="index.php"><i class="fa fa-dashboard"></i> Home</a></li>
                 <li class="active">Dashboard</li>
             </ol>
         </section>
@@ -117,11 +118,11 @@ while($row_complaints = $results->fetch_assoc()) {
         <section class="content">
             <!-- Small boxes (Stat box) -->
             <div class="row">
-                <div id="reserveren" class="col-lg-3 col-xs-6">
+
+                <div id="reserverenButton" class="col-lg-3 col-xs-6" onclick="window.location.href='reserveren.php';">
                     <!-- small box -->
                     <div class="small-box bg-aqua reserverenbutton">
                         <div class="inner">
-                            <!--<h3><?php foreach($complaints as $result) { echo $result, '<br>'; } ?></h3>-->
                             <h3>Reserveren</h3>
 
                             <p>Reservering formulier</p>
@@ -456,14 +457,15 @@ while($row_complaints = $results->fetch_assoc()) {
     $( document ).ready(function() {
 
         // Reservering knop
-        $( "#reserveren" ).click(function() {
-            window.location.href="rooster.php";
+        $( "#reserverenButton" ).click(function() {
+            window.location.href="reserveren.php";
         });
 
         // Profiel knop
         $( "#profiel" ).click(function() {
             window.location.href="profile.php";
         });
+        
 
     });
     

@@ -1,7 +1,8 @@
 <?php
 // Initialize the session
 session_start();
- 
+
+
 // Check if the user is logged in, if not then redirect him to login page
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
@@ -54,21 +55,72 @@ while($row = mysqli_fetch_assoc($results)){
 
 
 // If form post (on submit)
+$arrayMonths = array(
+    'jan' => '01',
+    'feb' => '02',
+    'mrt' => '03',
+    'apr' => '04',
+    'mei' => '05',
+    'jun' => '06',
+    'jul' => '07',
+    'aug' => '08',
+    'sep' => '09',
+    'okt' => '10',
+    'nov' => '11',
+    'dec' => '12'
+);
+
+$arrayNumbers = array(
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '-',
+    '/',
+);
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    //print_r($_POST);
+    //echo "<br>";
+
+    // $reservationArrive = $_POST['reservationArrive'];
+    // $dateReplaceArrive = str_replace($arrayNumbers,"",$reservationArrive);
+    // $dateReplaceArrive =  str_replace($dateReplaceArrive, $arrayMonths[$dateReplaceArrive],$reservationArrive);
+    // $newDateArrive = date("y-m-d", strtotime($dateReplaceArrive));
+    // $_POST['reservationArrive'] = $newDateArrive;
+
+    // $reservationDeparture = $_POST['reservationDeparture'];
+    // $dateReplaceDeparture = str_replace($arrayNumbers,"",$reservationDeparture);
+    // $dateReplaceDeparture =  str_replace($dateReplaceDeparture, $arrayMonths[$dateReplaceDeparture],$reservationDeparture);
+    // $newDateDeparture = date("y-m-d", strtotime($dateReplaceDeparture));
+    // echo $newDateDeparture;
+    // $_POST['reservationDeparture'] = $newDateDeparture;
+
+    // echo "<br>";
+    // echo str_replace("mei","05",$dateTest);
+
+
+    $reservationArrive = $_POST['reservationArrive'];
+    $reservationArrive = date("y-m-d", strtotime($reservationArrive));
+    $_POST['reservationArrive'] = $reservationArrive . " 00:00:00";
+
+    $reservationDeparture = $_POST['reservationDeparture'];
+    $reservationDeparture = date("y-m-d", strtotime($reservationDeparture));
+    $_POST['reservationDeparture'] = $reservationDeparture . " 00:00:00";
+
 
     $error = false;
     $success = false;
 
-    print_r($_POST['reservationtime']);
-    $start_year = substr($_POST['reservationtime'], -19);
-    $end_year = substr($_POST['reservationtime'], 20);
 
-
-    //$end_year = substr($d2, -4);
-    echo '<br>';
-    echo $start_year;  
-    echo '<br>';
-    echo $end_year;  
 
     if (empty($_POST['room']) ) {
 
@@ -77,16 +129,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Set error message
         $errorMessage = "Er is geen plaats of kamer geselecteerd, reservering niet geplaatst";
     }
+    //elseif (empty($_POST['reservationArrive'] || empty($_POST['reservationDeparture']) ) {
+    elseif (empty($_POST['reservationArrive']) || empty($_POST['reservationDeparture']) ) {
+
+        // Show error
+        $error = true;
+        // Set error message
+        $errorMessage = "Er is geen goede datum geselecteerd, reservering niet geplaatst";
+
+    }
+    elseif ($_POST['reservationArrive'] == $_POST['reservationDeparture']) {
+
+        // Show error
+        $error = true;
+        // Set error message
+        $errorMessage = "Je kunt alleen voor meer dan 1 dag huren, reservering niet geplaatst";
+
+    }
     else {
-
-
-        
         
         // Query for the users
-        $sql = "INSERT INTO `reservations` (`user_id`, `arrival`, `departure`, `room_id`) VALUES ('" . $_SESSION['id'] . "', '2019-05-14 00:00:00', '2019-04-13 00:00:00', '" . $_POST['room'] . "')";
+        $sql = "INSERT INTO `reservations` (`user_id`, `arrival`, `departure`, `room_id`) VALUES ('" . $_SESSION['id'] . "', '" . $_POST['reservationArrive'] . "', '" . $_POST['reservationDeparture'] . "', '" . $_POST['room'] . "')";
         echo $sql;
-        //echo "<br>" . $sql;
-
         if (!mysqli_query($link,"$sql"))
         {
             // Set error message to true
@@ -149,7 +213,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!-- AdminLTE Skins. Choose a skin from the css/skins
        folder instead of downloading all of them to reduce the load. -->
   <link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
-
+<!-- -->
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -159,6 +226,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <!-- Google Font -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+  
+
 </head>
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
@@ -196,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          <div class="col-md-8">
          <div class="box box-danger">
             <div class="box-header">
-              <h3 class="box-title">Reserveren</h3>
+              <h3 class="box-title">Reserverings formulier</h3>
             </div>
             <div class="box-body">
                 <form id="reservation" action="reserveren.php" method="post">
@@ -240,17 +310,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- /.input group -->
                     </div>
 
-                    <div class="form-group">
-                        <label>Datum en tijd:</label>
+                    <!-- <div class="form-group">
+                        <label>Datum aankomst:</label>
 
                         <div class="input-group">
                             <div class="input-group-addon">
                                 <i class="fa fa-clock-o"></i>
                             </div>
-                            <input id="reservationtime" type="text" class="form-control pull-right" name="reservationtime" data-date="1979-09-16T05:25:07Z" data-date-format="dd MM yyyy - HH:ii p">
+                            <input type="date" id="reservationArrive" class="form-control pull-right" name="reservationArrive" min="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                    </div> -->
+                    <!-- /.input group -->
+
+                    <!-- <div class="form-group">
+                        <label>Datum vertrek:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                            <input type="date" id="reservationDeparture" class="form-control pull-right" name="reservationDeparture" min="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                    </div> -->
+                    <!-- /.input group -->
+
+                    
+                    <div class="form-group">
+                        <label>Datum aankomst:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                            <!-- data-date-format="dd-mm-yyyy" -->
+                            <input type="text" id="reservationArrive" class="datepicker form-control pull-right" name="reservationArrive" autocomplete="off" placeholder="dd-mm-yyyy">
+                            <!--
+                            <input type="text" id="reservationArrive" class="datepicker form-control pull-right" name="reservationArrive" autocomplete="off" placeholder="dd-mm-yyyy" value="<?php if (isset($_POST['reservationArrive'])) { echo $_POST['reservationArrive']; }?>">
+                            -->
+                        </div>
+                    </div>
+
+                    <!-- -->
+                    <div class="form-group">
+                        <label>Datum vertrek:</label>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                            <input type="text" id="reservationDeparture" class="datepicker form-control pull-right" name="reservationDeparture" autocomplete="off" placeholder="dd-mm-yyyy">
+                            <!--
+                            <input type="text" id="reservationDeparture" class="datepicker form-control pull-right" name="reservationDeparture" autocomplete="off" placeholder="dd-mm-yyyy" value="<?php if (isset($_POST['reservationDeparture'])) { echo $_POST['reservationDeparture']; }?>">
+                            -->
                         </div>
                         <!-- /.input group -->
                     </div>
+                    <!-- -->
 
                     <div class="form-group">
                         <label>Plaats / kamer:</label>
@@ -285,7 +400,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <br>
                     
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="submit" class="btn btn-primary">Reserveren</button>
                     
                 </form>
                 <br>
@@ -574,6 +689,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!-- AdminLTE for demo purposes -->
 <script src="dist/js/demo.js"></script>
 <!-- Page script -->
+
+
+
+
+
+
+
 <script>
 
 $( document ).ready(function() {
@@ -655,5 +777,114 @@ $( document ).ready(function() {
 <!-- eigen script-->
 
 <script src="js/script.js"></script>
+
+
+<!-- Date Picker -->
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<!-- Date Picker -->
+
+<script>
+
+$( document ).ready(function() {
+    // $( function() {
+    //     $( "#datepicker" ).datepicker();
+    // });
+  
+    // $( "#reservation" ).submit(function( event ) {
+    // alert( "Handler for .submit() called." );
+    // event.preventDefault();
+    // });
+
+    // var disableddates = ["20-05-2015", "12-11-2014", "12-25-2014", "12-20-2014"];
+        
+    $(function() {
+        $.datepicker.regional['nl'] = {
+            closeText: "Sluiten",
+            prevText: "←",
+            nextText: "→",
+            currentText: "Vandaag",
+            monthNames: [ "januari", "februari", "maart", "april", "mei", "juni",
+            "juli", "augustus", "september", "oktober", "november", "december" ],
+            monthNamesShort: [ "01", "02", "03", "04", "05", "06",
+            "07", "08", "09", "10", "11", "12" ],
+            dayNames: [ "zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag" ],
+            dayNamesShort: [ "zon", "maa", "din", "woe", "don", "vri", "zat" ],
+            dayNamesMin: [ "zo", "ma", "di", "wo", "do", "vr", "za" ],
+            weekHeader: "Wk",
+            dateFormat: "dd-mm-yy",
+            firstDay: 1,
+            isRTL: false,
+            showMonthAfterYear: false,
+            yearSuffix: ""
+        };
+
+        var disabledDates = ["2019-05-18","2015-11-14","2015-11-21"];
+
+        $( ".datepicker" ).datepicker({
+            beforeShowDay: function(date){
+                var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
+                return [ disabledDates.indexOf(string) == -1 ]
+            },
+            prevText: "Vorige",
+            nextText: "Volgende",
+
+            numberOfMonths: 1, // Aantal selectors
+            showOtherMonths: true, // Laat andere dagen van maanden zien
+            showButtonPanel: true, // Today en Done buttons
+            minDate: new Date(2007, 1 - 1, 1),
+            currentText: "Vandaag", // Today button
+            closeText: "Selecteer", // Done button
+            dateFormat: 'dd-mm-yy',
+
+        });
+        $.datepicker.setDefaults($.datepicker.regional['nl']);
+    });
+
+    // jQuery(function($) {
+    //     $('#datepicker').datepicker({
+    //         dateFormat: "dd.m.yy",
+    //         duration: '',
+    //         changeMonth: false,
+    //         changeYear: false,
+    //         yearRange: '2010:2020',
+    //         showTime: false,
+    //         time24h: true
+    //     });
+
+    //     // $.datepicker.regional['cs'] = {
+    //     //     closeText: 'Zavřít',
+    //     //     prevText: '&#x3c;Dříve',
+    //     //     nextText: 'Později&#x3e;',
+    //     //     currentText: 'Nyní',
+    //     //     monthNames: ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen',
+    //     //     'září', 'říjen', 'listopad', 'prosinec'
+    //     //     ],
+    //     //     monthNamesShort: ['led', 'úno', 'bře', 'dub', 'kvě', 'čer', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'],
+    //     //     dayNames: ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'],
+    //     //     dayNamesShort: ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'],
+    //     //     dayNamesMin: ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'],
+    //     //     weekHeader: 'Týd',
+    //     //     dateFormat: 'dd/mm/yy',
+    //     //     firstDay: 1,
+    //     //     isRTL: false,
+    //     //     showMonthAfterYear: false,
+    //     //     yearSuffix: ''
+    //     // };
+
+    //     $.datepicker.setDefaults({
+    //         dateFormat: 'dd/mm/yy',
+    //     });
+    // });
+
+    // $( function() {
+        
+    //     //$.datepicker.setDefaults($.datepicker.regional['it']);
+    //     $( "#datepicker" ).datepicker();
+    // } );
+});
+</script>
+
 </body>
 </html>
